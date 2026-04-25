@@ -1,0 +1,55 @@
+// Reference schema for teams migrating from Prisma-based setups.
+// Runtime persistence in this project intentionally uses direct SQL via `pg`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PromptTest {
+  id            String   @id
+  name          String
+  description   String
+  provider      String
+  model         String
+  status        String
+  trafficSplitA Int
+  variantAPrompt String
+  variantBPrompt String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  runs          TestRun[]
+
+  @@map("prompt_tests")
+}
+
+model TestRun {
+  id        String   @id
+  testId    String
+  variant   String
+  inputText String
+  outputText String
+  provider  String
+  model     String
+  latencyMs Int
+  tokens    Int?
+  score     Float
+  createdAt DateTime @default(now())
+  test      PromptTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId, createdAt])
+  @@map("test_runs")
+}
+
+model Purchase {
+  email      String   @id
+  checkoutId String
+  source     String
+  createdAt  DateTime @default(now())
+
+  @@map("purchases")
+}
